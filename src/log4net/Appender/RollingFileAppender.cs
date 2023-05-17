@@ -755,9 +755,17 @@ namespace log4net.Appender
 			string fullPath = null;
 			string fileName = null;
 
-			using(SecurityContext.Impersonate(this))
+			using (SecurityContext.Impersonate(this))
 			{
-				fullPath = Path.GetFullPath(m_baseFileName);
+				if (m_rollingStyle.HasFlag(RollingMode.Date))
+				{
+					fullPath = CombinePath(m_baseFileName, m_now.ToString(m_datePattern, DateTimeFormatInfo.InvariantInfo));
+                    fullPath = Path.GetFullPath(fullPath);
+                }
+				else
+				{
+					fullPath = Path.GetFullPath(m_baseFileName);
+				}
 				fileName = Path.GetFileName(fullPath);
 			}
 
@@ -935,22 +943,22 @@ namespace log4net.Appender
 				return;
 			}
 	
-			// Only look for files in the current roll point
-			if (m_rollDate && !m_staticLogFileName)
-			{
-				var date = m_dateTime.Now.ToString(m_datePattern, DateTimeFormatInfo.InvariantInfo).ToLower();
-				var prefix = (m_preserveLogFileNameExtension 
-					? Path.GetFileNameWithoutExtension(baseFile) + date 
-					: baseFile + date).ToLower();
-				var suffix = m_preserveLogFileNameExtension 
-					? Path.GetExtension(baseFile).ToLower()
-					: "";
-				if (!curFileName.StartsWith(prefix) || !curFileName.EndsWith(suffix))
-				{
-					LogLog.Debug(declaringType, "Ignoring file ["+curFileName+"] because it is from a different date period");
-					return;
-				}
-			}
+			//// Only look for files in the current roll point
+			//if (m_rollDate && !m_staticLogFileName)
+			//{
+			//	var date = m_dateTime.Now.ToString(m_datePattern, DateTimeFormatInfo.InvariantInfo).ToLower();
+			//	var prefix = (m_preserveLogFileNameExtension 
+			//		? Path.GetFileNameWithoutExtension(baseFile) + date 
+			//		: baseFile + date).ToLower();
+			//	var suffix = m_preserveLogFileNameExtension 
+			//		? Path.GetExtension(baseFile).ToLower()
+			//		: "";
+			//	if (!curFileName.StartsWith(prefix) || !curFileName.EndsWith(suffix))
+			//	{
+			//		LogLog.Debug(declaringType, "Ignoring file ["+curFileName+"] because it is from a different date period");
+			//		return;
+			//	}
+			//}
             
 			try 
 			{
